@@ -1,55 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
+import axios from 'axios';
+import './App.css'
 import StartScreen from './componets/StartScreen';
 import QuizScreen from './componets/QuizScreen';
-import ResultScreen from './componets/ResultsScreen';
-import axios from 'axios';
+import ResultsScreen from './componets/ResultsScreen';
 
-function App() {
-  const [quizData, setQuizData] = useState([]);
-  const [userAnswers, setUserAnswers] = useState([]);
-  const [currentScreen, setCurrentScreen] = useState('start'); // Can be 'start', 'quiz', or 'result'
-  const [score, setScore] = useState(0);
+export default function App() {
+  const [questions, setQuestions] = useState([]);
+  const [selectedAnswers, setSelectedAnswers] = useState([]);
+  const [correctAnswers, setCorrectAnswers] = useState([]);
+  const [screen, setScreen] = useState('start'); // 'start', 'quiz', 'results'
 
-  // Fetch questions when starting the quiz
-  const fetchQuizData = async () => {
+  // Fetch quiz questions when the quiz starts
+  const fetchQuestions = async () => {
     try {
       const response = await axios.get('https://opentdb.com/api.php?amount=5&type=multiple');
-      setQuizData(response.data.results);
-      setCurrentScreen('quiz');
-      setUserAnswers([]); // Reset user answers
+      const fetchedQuestions = response.data.results.map((question) => ({
+        question: question.question,
+        answers: [...question.incorrect_answers, question.correct_answer].sort(),
+      }));
+      setQuestions(fetchedQuestions);
+      setCorrectAnswers(response.data.results.map((q) => q.correct_answer));
+      setSelectedAnswers([]);
+      setScreen('quiz'); // Move to quiz screen
     } catch (error) {
-      console.error('Error fetching quiz data', error);
+      console.error('Error fetching questions:', error);
     }
   };
 
-  // Handle checking answers and moving to result screen
-  const handleSubmitQuiz = (answers) => {
-    let correctAnswers = 0;
-    quizData.forEach((question, index) => {
-      if (answers[index] === question.correct_answer) {
-        correctAnswers++;
-      }
-    });
-    setScore(correctAnswers);
-    setUserAnswers(answers);
-    setCurrentScreen('result');
+  // Handle when answers are submitted
+  const submitQuiz = (selected) => {
+    setSelectedAnswers(selected);
+    setScreen('results'); // Move to results screen
   };
 
-  // Reset the quiz and go back to the start screen
-  const handleRestartQuiz = () => {
-    setCurrentScreen('start');
-    setScore(0);
-    setQuizData([]); // Optionally clear quiz data before fetching again
+  // Restart quiz
+  const handlePlayAgain = () => {
+    setScreen('start');
   };
 
   return (
-    <div className="App">
-      {currentScreen === 'start' && <StartScreen startQuiz={fetchQuizData} />}
-      {currentScreen === 'quiz' && <QuizScreen quizData={quizData} handleSubmitQuiz={handleSubmitQuiz} />}
-      {currentScreen === 'result' && <ResultScreen score={score} userAnswers={userAnswers} quizData={quizData} tryAgain={handleRestartQuiz} />}
+    <div className='quiz-app'>
+      {screen === 'start' && <StartScreen startQuiz={fetchQuestions} />}
+      {screen === 'quiz' && (
+        <QuizScreen
+          questions={questions}
+          submitQuiz={submitQuiz}
+        />
+      )}
+      {screen === 'results' && (
+        <ResultsScreen
+          questions={questions}
+          selectedAnswers={selectedAnswers}
+          correctAnswers={correctAnswers}
+          playAgain={handlePlayAgain}
+        />
+      )}
     </div>
   );
 }
-
-export default App;

@@ -1,18 +1,42 @@
 import React from 'react';
 
-function ResultScreen({ score, userAnswers, quizData, tryAgain }) {
+function ResultsScreen({ questions, selectedAnswers, correctAnswers, playAgain }) {
+    if (!questions || questions.length === 0) return <p>Loading results...</p>;
+  
     return (
-      <div className="result">
-        <h1>Your Score: {score}/5</h1>
-        <p>Here are the correct answers:</p>
-        {quizData.map((question, index) => (
-          <div key={index}>
-            <h3>{question.question}</h3>
-            <p>Your answer: {userAnswers[index]}</p>
-            <p>Correct answer: {question.correct_answer}</p>
-          </div>
-        ))}
-        <button onClick={tryAgain}>Try Again</button>
+      <div className="results-screen">
+        <h1>Quiz Results</h1>
+        <ul className="results-list">
+          {questions.map((question, index) => (
+            <li key={index} className="results-question">
+              <h3>{`${index + 1}. ${question.question}`}</h3>
+              <div className="answers">
+                {question.answers.map((answer, idx) => {
+                  const isCorrect = answer === correctAnswers[index];
+                  const isSelected = answer === selectedAnswers[index];
+                  const className = isCorrect
+                    ? 'answer-button correct'
+                    : isSelected
+                    ? 'answer-button incorrect'
+                    : 'answer-button';
+  
+                  return (
+                    <button key={idx} className={className} disabled>
+                      {answer}
+                    </button>
+                  );
+                })}
+              </div>
+            </li>
+          ))}
+        </ul>
+        <p>
+          You scored {selectedAnswers.filter((answer, i) => answer === correctAnswers[i]).length}/
+          {questions.length} correct answers.
+        </p>
+        <button className="play-again-button" onClick={playAgain}>
+          Play again
+        </button>
       </div>
     );
   }
