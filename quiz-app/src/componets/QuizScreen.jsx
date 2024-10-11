@@ -17,7 +17,7 @@ function QuizScreen({ questions, submitQuiz }) {
 
   return (
     <div className="quiz-screen">
-      <h2>Answer the following questions:</h2>
+      <h2><u>QUESTION:</u></h2>
       <ul className="question-list">
         {questions.map((question, index) => (
           <li key={index} className="question-item">

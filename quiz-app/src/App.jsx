@@ -36,7 +36,7 @@ export default function App() {
 
   // Restart quiz
   const handlePlayAgain = () => {
-    setScreen('start');
+    fetchQuestions(); 
   };
 
   return (
